@@ -23,7 +23,7 @@ def main(output_dir: Path, max_workers: int) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     with SharWriter(
-        str(output_dir), fields={"recording": "flac"}, shard_size=10
+        str(output_dir), fields={"recording": "flac"}, shard_size=100
     ) as writer:
         for cut in downloader.get_cuts():
             writer.write(cut)
