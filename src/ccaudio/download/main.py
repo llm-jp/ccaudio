@@ -1,9 +1,12 @@
 import os
 import tempfile
+import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
 from datasets import load_dataset
+from lhotse import MonoCut, MultiCut, Recording
+from lhotse.manipulation import SupervisionSegment
 from tqdm import tqdm
 
 from ccaudio.download.util import download_file
@@ -25,6 +28,53 @@ def main() -> None:
             except Exception as e:
                 print(e)
                 continue
+
+            id = uuid.uuid4().hex
+
+            recording = Recording.from_file(tmp_path, recording_id=f"recording_{id}")
+            assert recording.channel_ids is not None
+
+            supervision = SupervisionSegment(
+                id=f"segment_{id}",
+                recording_id=recording.id,
+                start=0,
+                duration=recording.duration,
+                channel=recording.channel_ids,
+                language=data["language"],
+            )
+
+            if len(recording.channel_ids) == 1:
+                cut = MonoCut(
+                    id=id,
+                    start=0,
+                    duration=recording.duration,
+                    channel=0,
+                    supervisions=[supervision],
+                    recording=recording,
+                    custom={
+                        "audio_url": data["audio_url"],
+                        "title": data["title"],
+                        "description": data["description"],
+                        "page_url": data["page_url"],
+                    },
+                )
+            else:
+                cut = MultiCut(
+                    id=id,
+                    start=0,
+                    duration=recording.duration,
+                    channel=recording.channel_ids,
+                    supervisions=[supervision],
+                    recording=recording,
+                    custom={
+                        "audio_url": data["audio_url"],
+                        "title": data["title"],
+                        "description": data["description"],
+                        "page_url": data["page_url"],
+                    },
+                )
+
+            print(cut)
 
             break
 
