@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+import lhotse
 from datasets import load_dataset
 from datasets.arrow_dataset import Dataset
 from lhotse.shar import SharWriter
@@ -9,6 +10,8 @@ from ccaudio.download.downloader import Downloader
 
 
 def main(output_dir: Path, max_workers: int) -> None:
+    lhotse.set_audio_duration_mismatch_tolerance(10.0)
+
     ds = load_dataset("llm-jp/cc-audio-2025-18-rss", split="train")
     ja_items = ["ja", "ja_JP", "ja-jp", "ja-JP"]
     ds = ds.filter(lambda x: x["language"] in ja_items)
@@ -29,7 +32,7 @@ def main(output_dir: Path, max_workers: int) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, required=True)
-    parser.add_argument("--max_workers", type=int, default=16, required=False)
+    parser.add_argument("--max_workers", type=int, default=10, required=False)
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)

@@ -33,77 +33,75 @@ class Downloader:
             self.logger.addHandler(ch)
 
     def _process_single_item(self, data: Any, tmp_dir: str) -> Cut | None:
-        assert isinstance(data, dict)
-
-        parsed_url = urlparse(data["audio_url"])
-        filename = os.path.basename(parsed_url.path)
-
-        tmp_path = Path(tmp_dir) / filename
         try:
-            download_file(data["audio_url"], tmp_path)
-        except Exception as e:
-            self.logger.warning(e)
-            return None
+            assert isinstance(data, dict)
 
-        id = uuid.uuid4().hex
+            parsed_url = urlparse(data["audio_url"])
+            filename = os.path.basename(parsed_url.path)
 
-        recording = Recording.from_file(tmp_path, recording_id=f"recording_{id}")
-        assert recording.channel_ids is not None
+            tmp_path = Path(tmp_dir) / filename
+            download_file(data["audio_url"], tmp_path, progress_bar=False)
 
-        supervision = SupervisionSegment(
-            id=f"segment_{id}",
-            recording_id=recording.id,
-            start=0,
-            duration=recording.duration,
-            channel=recording.channel_ids,
-            language=data["language"],
-        )
+            id = uuid.uuid4().hex
 
-        if len(recording.channel_ids) == 1:
-            cut = MonoCut(
-                id=id,
-                start=0,
-                duration=recording.duration,
-                channel=0,
-                supervisions=[supervision],
-                recording=recording,
-                custom={
-                    "audio_url": data["audio_url"],
-                    "title": data["title"],
-                    "description": data["description"],
-                    "page_url": data["page_url"],
-                },
-            )
-        else:
-            cut = MultiCut(
-                id=id,
+            recording = Recording.from_file(tmp_path, recording_id=f"recording_{id}")
+            assert recording.channel_ids is not None
+
+            supervision = SupervisionSegment(
+                id=f"segment_{id}",
+                recording_id=recording.id,
                 start=0,
                 duration=recording.duration,
                 channel=recording.channel_ids,
-                supervisions=[supervision],
-                recording=recording,
-                custom={
-                    "audio_url": data["audio_url"],
-                    "title": data["title"],
-                    "description": data["description"],
-                    "page_url": data["page_url"],
-                },
+                language=data["language"],
             )
 
-        return cut
+            if len(recording.channel_ids) == 1:
+                cut = MonoCut(
+                    id=id,
+                    start=0,
+                    duration=recording.duration,
+                    channel=0,
+                    supervisions=[supervision],
+                    recording=recording,
+                    custom={
+                        "audio_url": data["audio_url"],
+                        "title": data["title"],
+                        "description": data["description"],
+                        "page_url": data["page_url"],
+                    },
+                )
+            else:
+                cut = MultiCut(
+                    id=id,
+                    start=0,
+                    duration=recording.duration,
+                    channel=recording.channel_ids,
+                    supervisions=[supervision],
+                    recording=recording,
+                    custom={
+                        "audio_url": data["audio_url"],
+                        "title": data["title"],
+                        "description": data["description"],
+                        "page_url": data["page_url"],
+                    },
+                )
+
+            return cut
+
+        except Exception as e:
+            self.logger.warning(e)
+            return None
 
     def get_cuts(self) -> Generator[Cut, None, None]:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 futures = {
-                    executor.submit(self._process_single_item, data, tmp_dir): data
+                    executor.submit(self._process_single_item, data, tmp_dir)
                     for data in self.ds
                 }
 
-                for future in tqdm(as_completed(futures), total=len(futures)):
-                    try:
-                        cut = future.result()
-                        if cut is not None:
-                            yield cut
-                    except Exception as e:
-                        self.logger.warning(f"Error processing item: {e}")
+                for future in tqdm(as_completed(futures), total=len(self.ds)):
+                    result = future.result()
+                    if result is not None:
+                        yield result
