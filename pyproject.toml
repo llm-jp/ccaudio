@@ -7,7 +7,9 @@ authors = [
     { name = "Kohei ASAI", email = "ko2001he@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "datasets>=4.0.0",
+]
 
 [project.scripts]
 ccaudio = "ccaudio:main"
