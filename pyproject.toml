@@ -34,6 +34,9 @@ fix = true
 select = ["E", "F", "I"]
 fixable = ["ALL"]
 
+[tool.ruff.lint.pycodestyle]
+max-line-length = 120
+
 [tool.ruff.format]
 docstring-code-format = true
 
