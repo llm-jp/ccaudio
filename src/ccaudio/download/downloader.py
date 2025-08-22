@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from datasets.arrow_dataset import Dataset
 from lhotse import MonoCut, MultiCut, Recording, SupervisionSegment
 from lhotse.cut import Cut
+from pydub import AudioSegment
 from tqdm import tqdm
 
 from ccaudio.download.util import download_file
@@ -32,76 +33,84 @@ class Downloader:
         if len(self.logger.handlers) == 0:
             self.logger.addHandler(ch)
 
-    def _process_single_item(self, data: Any, tmp_dir: str) -> Cut | None:
+    def _process_single_item(self, data: Any) -> Cut | None:
         try:
-            assert isinstance(data, dict)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                assert isinstance(data, dict)
 
-            parsed_url = urlparse(data["audio_url"])
-            filename = os.path.basename(parsed_url.path)
+                parsed_url = urlparse(data["audio_url"])
+                filename = os.path.basename(parsed_url.path)
 
-            tmp_path = Path(tmp_dir) / filename
-            download_file(data["audio_url"], tmp_path, progress_bar=False)
+                tmp_path = Path(tmp_dir) / filename
+                download_file(data["audio_url"], tmp_path, progress_bar=False)
 
-            id = uuid.uuid4().hex
+                _, extension = os.path.splitext(parsed_url.path)
 
-            recording = Recording.from_file(tmp_path, recording_id=f"recording_{id}")
-            assert recording.channel_ids is not None
+                if extension not in (".wav", ".flac", ".mp3"):
+                    audio = AudioSegment.from_file(tmp_path, format=extension[1:])
+                    tmp_path = tmp_path.with_suffix(".wav")
+                    audio.export(tmp_path, format="wav")
 
-            supervision = SupervisionSegment(
-                id=f"segment_{id}",
-                recording_id=recording.id,
-                start=0,
-                duration=recording.duration,
-                channel=recording.channel_ids,
-                language=data["language"],
-            )
+                id = uuid.uuid4().hex
 
-            if len(recording.channel_ids) == 1:
-                cut = MonoCut(
-                    id=id,
-                    start=0,
-                    duration=recording.duration,
-                    channel=0,
-                    supervisions=[supervision],
-                    recording=recording,
-                    custom={
-                        "audio_url": data["audio_url"],
-                        "title": data["title"],
-                        "description": data["description"],
-                        "page_url": data["page_url"],
-                    },
-                )
-            else:
-                cut = MultiCut(
-                    id=id,
+                recording = Recording.from_file(
+                    tmp_path, recording_id=f"recording_{id}"
+                ).move_to_memory()
+                assert recording.channel_ids is not None
+
+                supervision = SupervisionSegment(
+                    id=f"segment_{id}",
+                    recording_id=recording.id,
                     start=0,
                     duration=recording.duration,
                     channel=recording.channel_ids,
-                    supervisions=[supervision],
-                    recording=recording,
-                    custom={
-                        "audio_url": data["audio_url"],
-                        "title": data["title"],
-                        "description": data["description"],
-                        "page_url": data["page_url"],
-                    },
+                    language=data["language"],
                 )
 
-            return cut
+                if len(recording.channel_ids) == 1:
+                    cut = MonoCut(
+                        id=id,
+                        start=0,
+                        duration=recording.duration,
+                        channel=0,
+                        supervisions=[supervision],
+                        recording=recording,
+                        custom={
+                            "audio_url": data["audio_url"],
+                            "title": data["title"],
+                            "description": data["description"],
+                            "page_url": data["page_url"],
+                        },
+                    )
+                else:
+                    cut = MultiCut(
+                        id=id,
+                        start=0,
+                        duration=recording.duration,
+                        channel=recording.channel_ids,
+                        supervisions=[supervision],
+                        recording=recording,
+                        custom={
+                            "audio_url": data["audio_url"],
+                            "title": data["title"],
+                            "description": data["description"],
+                            "page_url": data["page_url"],
+                        },
+                    )
+
+                return cut
 
         except Exception as e:
             self.logger.warning(e)
             return None
 
     def get_cuts(self) -> Generator[Cut, None, None]:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                futures = {
-                    executor.submit(self._process_single_item, data, tmp_dir)
-                    for data in self.ds
-                }
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = {
+                executor.submit(self._process_single_item, data) for data in self.ds
+            }
 
-                for future in tqdm(as_completed(futures), total=len(self.ds)):
-                    result = future.result()
-                    if result is not None:
-                        yield result
+            for future in tqdm(as_completed(futures), total=len(self.ds)):
+                result = future.result()
+                if result is not None:
+                    yield result
