@@ -4,6 +4,7 @@ from typing import Any, Generator
 import scrapy
 from datasets import load_dataset
 from scrapy import Request
+from scrapy.http import Response
 
 
 class AudioSpider(scrapy.Spider):
@@ -23,6 +24,7 @@ class AudioSpider(scrapy.Spider):
 
     def start_requests(self) -> Generator[Request, None, None]:
         for data in self.ds:
+            assert isinstance(data, dict)
             item_id = uuid.uuid4().hex
             yield Request(
                 url=data["audio_url"],
@@ -38,8 +40,10 @@ class AudioSpider(scrapy.Spider):
                 dont_filter=True,
             )
 
-    def parse(self, response: scrapy.http.Response) -> dict[str, Any]:
+    def parse(self, response: Response) -> dict[str, Any]:
         meta = response.meta
+        content_type = response.headers.get("Content-Type", b"")
+        assert content_type is not None
         return {
             "item_id": meta["item_id"],
             "audio_data": response.body,
@@ -48,5 +52,5 @@ class AudioSpider(scrapy.Spider):
             "description": meta["description"],
             "page_url": meta["page_url"],
             "language": meta["language"],
-            "content_type": response.headers.get("Content-Type", b"").decode("utf-8"),
+            "content_type": content_type.decode("utf-8"),
         }
