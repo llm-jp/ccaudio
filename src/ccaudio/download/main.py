@@ -1,39 +1,32 @@
 import argparse
+import os
 from pathlib import Path
 
-import lhotse
-from datasets import load_dataset
-from datasets.arrow_dataset import Dataset
-from lhotse.shar import SharWriter
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
 
-from ccaudio.download.downloader import Downloader
+from ccaudio.download.scrapy_spider import AudioSpider
 
 
-def main(output_dir: Path, max_workers: int) -> None:
-    lhotse.set_audio_duration_mismatch_tolerance(10.0)
+def main(output_dir: Path) -> None:
+    settings = get_project_settings()
 
-    ds = load_dataset("llm-jp/cc-audio-2025-18-rss", split="train")
-    ja_items = ["ja", "ja_JP", "ja-jp", "ja-JP"]
-    ds = ds.filter(lambda x: x["language"] in ja_items)
+    settings_module = "ccaudio.download.scrapy_settings"
+    os.environ.setdefault("SCRAPY_SETTINGS_MODULE", settings_module)
 
-    assert isinstance(ds, Dataset)
+    settings.setmodule(settings_module)
 
-    downloader = Downloader(ds, max_workers=max_workers)
+    settings.set("OUTPUT_DIR", str(output_dir))
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    with SharWriter(
-        str(output_dir), fields={"recording": "flac"}, shard_size=100
-    ) as writer:
-        for cut in downloader.get_cuts():
-            writer.write(cut)
+    process = CrawlerProcess(settings)
+    process.crawl(AudioSpider)
+    process.start()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, required=True)
-    parser.add_argument("--max_workers", type=int, default=10, required=False)
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
-    main(output_dir, args.max_workers)
+    main(output_dir)
