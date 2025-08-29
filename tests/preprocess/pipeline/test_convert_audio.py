@@ -2,7 +2,7 @@ import io
 
 import numpy as np
 import soundfile as sf
-from lhotse import MonoCut, MultiCut, Recording
+from lhotse import MonoCut, MultiCut, Recording, SupervisionSegment
 
 from ccaudio.preprocess.pipeline.convert_audio import convert_audio
 
@@ -23,6 +23,15 @@ def test_convert_audio_multi() -> None:
         duration=recording.duration,
         channel=recording.channel_ids,
         recording=recording,
+        supervisions=[
+            SupervisionSegment(
+                id="segment_id",
+                recording_id=recording.id,
+                start=0,
+                duration=recording.duration,
+                channel=0,
+            )
+        ],
     )
     cut = convert_audio(cut)
 
@@ -45,6 +54,15 @@ def test_convert_audio_mono() -> None:
         duration=recording.duration,
         channel=0,
         recording=recording,
+        supervisions=[
+            SupervisionSegment(
+                id="segment_id",
+                recording_id=recording.id,
+                start=0,
+                duration=recording.duration,
+                channel=0,
+            )
+        ],
     )
     cut = convert_audio(cut)
 
