@@ -12,4 +12,6 @@ def convert_audio(cut: MonoCut | MultiCut) -> MonoCut:
     resampled_cut = mono_cut.resample(16000)
     assert isinstance(resampled_cut, MonoCut)
 
+    resampled_cut.supervisions = [resampled_cut.supervisions[0]]
+
     return resampled_cut
