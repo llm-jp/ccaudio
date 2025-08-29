@@ -8,7 +8,7 @@ from scrapy.utils.project import get_project_settings
 from ccaudio.spiders.ccaudio import CCAudioSpider
 
 
-def main(output_dir: Path) -> None:
+def main(output_dir: Path, preprocess: bool) -> None:
     settings = get_project_settings()
 
     settings_module = "ccaudio.settings"
@@ -17,6 +17,7 @@ def main(output_dir: Path) -> None:
     settings.setmodule(settings_module)
 
     settings.set("OUTPUT_DIR", str(output_dir))
+    settings.set("PREPROCESS", preprocess)
 
     process = CrawlerProcess(settings)
     process.crawl(CCAudioSpider)
@@ -26,7 +27,8 @@ def main(output_dir: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_dir", type=str, required=True)
+    parser.add_argument("--preprocess", type=bool, default=True, required=True)
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
-    main(output_dir)
+    main(output_dir, args.preprocess)
