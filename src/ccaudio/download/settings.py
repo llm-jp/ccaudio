@@ -1,7 +1,7 @@
 BOT_NAME = "ccaudio"
 
-SPIDER_MODULES = ["ccaudio.spiders"]
-NEWSPIDER_MODULE = "ccaudio.spiders"
+SPIDER_MODULES = ["ccaudio.download.spiders"]
+NEWSPIDER_MODULE = "ccaudio.download.spiders"
 
 ROBOTSTXT_OBEY = False
 
@@ -41,4 +41,3 @@ HTTPCACHE_ENABLED = False
 
 OUTPUT_DIR = "./output"
 SHARD_SIZE = 5000
-PREPROCESS = True

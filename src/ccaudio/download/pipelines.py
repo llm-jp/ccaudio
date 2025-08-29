@@ -11,21 +11,15 @@ from lhotse.shar import SharWriter
 from pydub import AudioSegment
 from scrapy.exceptions import DropItem
 
-from ccaudio.items import AudioItem
-from ccaudio.preprocess.convert_audio import convert_audio
-from ccaudio.preprocess.whisper_detect_lang import whisper_detect_lang
-from ccaudio.preprocess.whisper_transcribe import WhisperModel, whisper_transcribe
-from ccaudio.spiders.ccaudio import CCAudioSpider
+from ccaudio.download.items import AudioItem
+from ccaudio.download.spiders.ccaudio import CCAudioSpider
 
 
 class CCAudioPipeline(object):
-    def __init__(self, output_dir: str, shard_size: int, preprocess: bool) -> None:
+    def __init__(self, output_dir: str, shard_size: int) -> None:
         self.output_dir = Path(output_dir)
         self.shard_size = shard_size
-        self.preprocess = preprocess
         self.writer: SharWriter | None = None
-
-        self.whisper_model = WhisperModel(model_size_or_path="large-v3")
 
         lhotse.set_audio_duration_mismatch_tolerance(100.0)
 
@@ -33,8 +27,7 @@ class CCAudioPipeline(object):
     def from_crawler(cls, crawler: Any) -> "CCAudioPipeline":
         output_dir = crawler.settings.get("OUTPUT_DIR", "./output")
         shard_size = crawler.settings.getint("SHARD_SIZE", 100)
-        preprocess = crawler.settings.getint("PREPROCESS", True)
-        return cls(output_dir=output_dir, shard_size=shard_size, preprocess=preprocess)
+        return cls(output_dir=output_dir, shard_size=shard_size)
 
     def open_spider(self, spider: CCAudioSpider) -> None:
         _ = spider
@@ -130,25 +123,7 @@ class CCAudioPipeline(object):
 
                 assert self.writer is not None
 
-                if self.preprocess:
-                    cut = convert_audio(cut)
-                    cut = whisper_detect_lang(cut, self.whisper_model)
-
-                    assert cut.custom is not None
-                    if cut.custom["lang_prob"] < 0.7:
-                        del item["audio_data"]
-                        return item
-
-                    cut = whisper_transcribe(cut, self.whisper_model)
-                    cuts = cut.trim_to_alignments(
-                        type="word", max_segment_duration=1.0, keep_all_channels=True
-                    )
-
-                    for c in cuts.data:
-                        self.writer.write(c)
-
-                else:
-                    self.writer.write(cut)
+                self.writer.write(cut)
 
                 del item["audio_data"]
                 return item

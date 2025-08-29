@@ -5,7 +5,7 @@ from datasets import load_dataset
 from scrapy import Request
 from scrapy.http import Response
 
-from ccaudio.items import AudioItem
+from ccaudio.download.items import AudioItem
 
 
 class CCAudioSpider(scrapy.Spider):
