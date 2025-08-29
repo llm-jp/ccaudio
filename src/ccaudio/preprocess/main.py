@@ -4,10 +4,10 @@ from pathlib import Path
 from faster_whisper import WhisperModel
 from lhotse import CutSet
 
-from ccaudio.preprocess.pipeline.convert_audio import convert_audio
-from ccaudio.preprocess.pipeline.filter_lang_prob import filter_lang_prob
-from ccaudio.preprocess.pipeline.whisper_detect_lang import whisper_detect_lang
-from ccaudio.preprocess.pipeline.whisper_transcribe import whisper_transcribe
+from ccaudio.preprocess.convert_audio import convert_audio
+from ccaudio.preprocess.filter_lang_prob import filter_lang_prob
+from ccaudio.preprocess.whisper_detect_lang import whisper_detect_lang
+from ccaudio.preprocess.whisper_transcribe import whisper_transcribe
 
 
 def main(shar_dir: Path) -> None:
