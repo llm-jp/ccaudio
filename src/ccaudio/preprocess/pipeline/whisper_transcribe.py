@@ -3,6 +3,7 @@ from dataclasses import asdict, is_dataclass
 import numpy as np
 from faster_whisper import WhisperModel
 from lhotse import MonoCut
+from lhotse.supervision import AlignmentItem
 
 
 def whisper_transcribe(cut: MonoCut, model: WhisperModel) -> MonoCut:
@@ -13,15 +14,24 @@ def whisper_transcribe(cut: MonoCut, model: WhisperModel) -> MonoCut:
         audio=audio[0], language=cut.supervisions[0].language
     )
 
-    _segments = []
+    pred_text = ""
+    alignment_items = []
     for segment in segments:
-        _segments.append(serialize(segment))
-    segments = _segments
+        seg = serialize(segment)
 
-    pred_text = "".join(str(segment["text"]) for segment in segments).strip()
+        pred_text += str(seg["text"]).strip()  # type: ignore
+        alignment_items.append(
+            AlignmentItem(
+                symbol=str(seg["text"]),  # type: ignore
+                start=float(seg["start"]),  # type: ignore
+                duration=float(seg["end"]) - float(seg["start"]),  # type: ignore
+            )
+        )
 
-    for s in cut.supervisions:
-        s.text = pred_text
+    s = cut.supervisions[0]
+    s.text = pred_text
+    s.alignment = {"word": alignment_items}
+    cut.supervisions = [s]
 
     return cut
 

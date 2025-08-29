@@ -16,11 +16,12 @@ def whisper_detect_lang(cut: MonoCut, model: WhisperModel) -> MonoCut:
         language_detection_threshold=0.5,
     )
 
-    for s in cut.supervisions:
-        s.language = lang
-        if s.custom is not None:
-            s.custom["lang_prob"] = lang_prob
-        else:
-            s.custom = {"lang_prob": lang_prob}
+    s = cut.supervisions[0]
+    s.language = lang
+    if s.custom is not None:
+        s.custom["lang_prob"] = lang_prob
+    else:
+        s.custom = {"lang_prob": lang_prob}
+    cut.supervisions = [s]
 
     return cut
