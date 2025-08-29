@@ -3,6 +3,8 @@ from pathlib import Path
 
 from faster_whisper import WhisperModel
 from lhotse import CutSet
+from lhotse.shar import SharWriter
+from tqdm import tqdm
 
 from ccaudio.preprocess.convert_audio import convert_audio
 from ccaudio.preprocess.filter_lang_prob import filter_lang_prob
@@ -10,7 +12,7 @@ from ccaudio.preprocess.whisper_detect_lang import whisper_detect_lang
 from ccaudio.preprocess.whisper_transcribe import whisper_transcribe
 
 
-def main(shar_dir: Path) -> None:
+def main(shar_dir: Path, output_dir: Path) -> None:
     cut_paths = sorted(list(map(str, shar_dir.glob("**/cuts.*.jsonl.gz"))))
     recording_paths = sorted(list(map(str, shar_dir.glob("**/recording.*.tar"))))
 
@@ -28,15 +30,19 @@ def main(shar_dir: Path) -> None:
         )
     )
 
-    for cut in cuts.data:
-        print(cut)
-        break
+    with SharWriter(
+        str(output_dir), fields={"recording": "flac"}, shard_size=5000
+    ) as writer:
+        for cut in tqdm(cuts.data):
+            writer.write(cut)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--shar_dir", type=str, required=True)
+    parser.add_argument("--output_dir", type=str, required=True)
     args = parser.parse_args()
 
     shar_dir = Path(args.shar_dir)
-    main(shar_dir)
+    output_dir = Path(args.output_dir)
+    main(shar_dir, output_dir)
