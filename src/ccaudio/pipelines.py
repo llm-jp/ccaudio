@@ -2,6 +2,7 @@ import os
 import tempfile
 import uuid
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import lhotse
@@ -21,6 +22,12 @@ class CCAudioPipeline(object):
         self.writer: SharWriter | None = None
 
         lhotse.set_audio_duration_mismatch_tolerance(100.0)
+
+    @classmethod
+    def from_crawler(cls, crawler: Any) -> "CCAudioPipeline":
+        output_dir = crawler.settings.get("OUTPUT_DIR", "./output")
+        shard_size = crawler.settings.getint("SHARD_SIZE", 100)
+        return cls(output_dir=output_dir, shard_size=shard_size)
 
     def open_spider(self, spider: CCAudioSpider) -> None:
         _ = spider

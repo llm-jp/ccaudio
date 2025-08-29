@@ -1,7 +1,7 @@
 from collections.abc import AsyncIterator
 
 import scrapy
-from datasets import Dataset
+from datasets import load_dataset
 from scrapy import Request
 from scrapy.http import Response
 
@@ -11,8 +11,12 @@ from ccaudio.items import AudioItem
 class CCAudioSpider(scrapy.Spider):
     name = "download_ccaudio_spider"
 
-    def __init__(self, ds: Dataset) -> None:
-        self.ds = ds
+    def __init__(self) -> None:
+        super(CCAudioSpider, self).__init__()
+
+        self.ds = load_dataset("llm-jp/cc-audio-2025-18-rss", split="train")
+        ja_items = ["ja", "ja_JP", "ja-jp", "ja-JP"]
+        self.ds = self.ds.filter(lambda x: x["language"] in ja_items)
 
     async def start(self) -> AsyncIterator[Request]:
         for data in self.ds:
