@@ -8,8 +8,8 @@ from ccaudio.preprocess.pipeline.convert_audio import convert_audio
 
 
 def test_convert_audio_multi() -> None:
-    wav = np.random.randn(2, 16000)
-    sr = 16000
+    wav = np.random.randn(2, 24000)
+    sr = 24000
 
     buf = io.BytesIO()
     sf.write(buf, wav.T, sr, format="WAV")
@@ -30,8 +30,8 @@ def test_convert_audio_multi() -> None:
 
 
 def test_convert_audio_mono() -> None:
-    wav = np.random.randn(16000)
-    sr = 16000
+    wav = np.random.randn(24000)
+    sr = 24000
 
     buf = io.BytesIO()
     sf.write(buf, wav.T, sr, format="WAV")
