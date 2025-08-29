@@ -5,10 +5,10 @@ from datasets import Dataset
 from scrapy import Request
 from scrapy.http import Response
 
-from ccaudio.download.items import AudioItem
+from ccaudio.items import AudioItem
 
 
-class DownloadCCAudioSpider(scrapy.Spider):
+class CCAudioSpider(scrapy.Spider):
     name = "download_ccaudio_spider"
 
     def __init__(self, ds: Dataset) -> None:
@@ -32,6 +32,8 @@ class DownloadCCAudioSpider(scrapy.Spider):
 
     def parse(self, response: Response) -> AudioItem:
         meta = response.meta
+        content_type = response.headers.get("Content-Type", b"")
+        assert content_type is not None
         return AudioItem(
             audio_url=meta["audio_url"],
             title=meta["title"],
@@ -39,4 +41,5 @@ class DownloadCCAudioSpider(scrapy.Spider):
             page_url=meta["page_url"],
             language=meta["language"],
             audio_data=response.body,
+            content_type=content_type.decode("utf-8"),
         )

@@ -8,3 +8,4 @@ class AudioItem(scrapy.Item):
     page_url = scrapy.Field()
     language = scrapy.Field()
     audio_data = scrapy.Field()
+    content_type = scrapy.Field()
