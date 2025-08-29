@@ -5,6 +5,7 @@ from faster_whisper import WhisperModel
 from lhotse import CutSet
 
 from ccaudio.preprocess.pipeline.convert_audio import convert_audio
+from ccaudio.preprocess.pipeline.filter_lang_prob import filter_lang_prob
 from ccaudio.preprocess.pipeline.whisper_detect_lang import whisper_detect_lang
 
 
@@ -16,7 +17,11 @@ def main(shar_dir: Path) -> None:
 
     model = WhisperModel(model_size_or_path="large-v3")
 
-    cuts = cuts.map(convert_audio).map(lambda c: whisper_detect_lang(c, model))
+    cuts = (
+        cuts.map(convert_audio)
+        .map(lambda c: whisper_detect_lang(c, model))
+        .filter(filter_lang_prob)
+    )
 
     for cut in cuts.data:
         print(cut)
