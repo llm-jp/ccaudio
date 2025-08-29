@@ -23,6 +23,9 @@ def main(shar_dir: Path) -> None:
         .map(lambda c: whisper_detect_lang(c, model))
         .filter(filter_lang_prob)
         .map(lambda c: whisper_transcribe(c, model))
+        .trim_to_alignments(
+            type="word", max_segment_duration=1.0, keep_all_channels=True
+        )
     )
 
     for cut in cuts.data:
