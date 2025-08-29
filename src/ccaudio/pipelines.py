@@ -11,7 +11,7 @@ from pydub import AudioSegment
 from scrapy.exceptions import DropItem
 
 from ccaudio.items import AudioItem
-from ccaudio.spiders import CCAudioSpider
+from ccaudio.spiders.ccaudio import CCAudioSpider
 
 
 class CCAudioPipeline(object):
