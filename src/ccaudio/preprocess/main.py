@@ -20,11 +20,12 @@ def main(shar_dir: Path, output_dir: Path) -> None:
 
     cuts = (
         cuts.map(convert_audio)
+        .cut_into_windows(duration=60, keep_excessive_supervisions=False, num_jobs=4)
         .map(lambda c: whisper_detect_lang(c, model))
         .filter(filter_lang_prob)
         .map(lambda c: whisper_transcribe(c, model))
         .trim_to_alignments(
-            type="word", max_segment_duration=1.0, keep_all_channels=True
+            type="word", max_segment_duration=1.0, keep_all_channels=True, num_jobs=4
         )
     )
 
@@ -33,7 +34,7 @@ def main(shar_dir: Path, output_dir: Path) -> None:
         fields={"recording": "flac"},
         shard_size=5000,
         num_jobs=4,
-        fault_tolerant=False,
+        fault_tolerant=True,
         verbose=True,
     )
 
