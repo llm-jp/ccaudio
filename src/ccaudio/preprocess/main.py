@@ -41,10 +41,10 @@ def main(shar_dir: Path, output_dir: Path) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--shar_dir", type=str, required=True)
+    parser.add_argument("--download_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
     args = parser.parse_args()
 
-    shar_dir = Path(args.shar_dir)
+    shar_dir = Path(args.download_dir)
     output_dir = Path(args.output_dir)
     main(shar_dir, output_dir)
