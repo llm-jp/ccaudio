@@ -3,8 +3,6 @@ from pathlib import Path
 
 from faster_whisper import WhisperModel
 from lhotse import CutSet
-from lhotse.shar import SharWriter
-from tqdm import tqdm
 
 from ccaudio.preprocess.convert_audio import convert_audio
 from ccaudio.preprocess.filter_lang_prob import filter_lang_prob
@@ -30,11 +28,14 @@ def main(shar_dir: Path, output_dir: Path) -> None:
         )
     )
 
-    with SharWriter(
-        str(output_dir), fields={"recording": "flac"}, shard_size=5000
-    ) as writer:
-        for cut in tqdm(cuts.data):
-            writer.write(cut)
+    cuts.to_shar(
+        output_dir,
+        fields={"recording": "flac"},
+        shard_size=5000,
+        num_jobs=4,
+        fault_tolerant=False,
+        verbose=True,
+    )
 
 
 if __name__ == "__main__":
