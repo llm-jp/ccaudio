@@ -1,6 +1,6 @@
 import numpy as np
 from faster_whisper import WhisperModel
-from lhotse import MonoCut
+from lhotse import MonoCut, SupervisionSegment
 
 
 def whisper_detect_lang(cut: MonoCut, model: WhisperModel) -> MonoCut:
@@ -16,9 +16,16 @@ def whisper_detect_lang(cut: MonoCut, model: WhisperModel) -> MonoCut:
         language_detection_threshold=0.5,
     )
 
-    s = cut.supervisions[0]
-    s.language = lang
-    cut.supervisions = [s]
+    cut.supervisions = [
+        SupervisionSegment(
+            id=f"segment_{cut.id}",
+            recording_id=cut.recording_id,
+            start=cut.start,
+            duration=cut.duration,
+            channel=0,
+            language=lang,
+        )
+    ]
 
     if cut.custom is not None:
         cut.custom["lang_prob"] = lang_prob

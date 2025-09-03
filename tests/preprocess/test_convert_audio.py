@@ -4,7 +4,7 @@ import numpy as np
 import soundfile as sf
 from lhotse import MonoCut, MultiCut, Recording, SupervisionSegment
 
-from ccaudio.preprocess.pipeline.convert_audio import convert_audio
+from ccaudio.preprocess.convert_audio import convert_audio
 
 
 def test_convert_audio_multi() -> None:

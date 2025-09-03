@@ -1,5 +1,6 @@
 import os
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -8,26 +9,30 @@ import lhotse
 from lhotse import MonoCut, MultiCut, Recording, SupervisionSegment
 from lhotse.shar import SharWriter
 from pydub import AudioSegment
-from scrapy import Spider
 from scrapy.exceptions import DropItem
 
+from ccaudio.download.items import AudioItem
+from ccaudio.download.spiders.ccaudio import CCAudioSpider
 
-class AudioProcessingPipeline:
-    def __init__(self, output_dir: str, shard_size: int = 100) -> None:
+
+class CCAudioPipeline(object):
+    def __init__(self, output_dir: str, shard_size: int) -> None:
         self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.shard_size = shard_size
         self.writer: SharWriter | None = None
-        lhotse.set_audio_duration_mismatch_tolerance(10.0)
+
+        lhotse.set_audio_duration_mismatch_tolerance(100.0)
 
     @classmethod
-    def from_crawler(cls, crawler: Any) -> "AudioProcessingPipeline":
+    def from_crawler(cls, crawler: Any) -> "CCAudioPipeline":
         output_dir = crawler.settings.get("OUTPUT_DIR", "./output")
         shard_size = crawler.settings.getint("SHARD_SIZE", 100)
         return cls(output_dir=output_dir, shard_size=shard_size)
 
-    def open_spider(self, spider: Spider) -> None:
+    def open_spider(self, spider: CCAudioSpider) -> None:
         _ = spider
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
         self.writer = SharWriter(
             str(self.output_dir),
             fields={"recording": "flac"},
@@ -35,18 +40,19 @@ class AudioProcessingPipeline:
         )
         self.writer.__enter__()
 
-    def close_spider(self, spider: Spider) -> None:
+    def close_spider(self, spider: CCAudioSpider) -> None:
         _ = spider
         if self.writer:
             self.writer.__exit__(None, None, None)
 
-    def process_item(self, item: dict[str, Any], spider: Spider) -> dict[str, Any]:
+    def process_item(self, item: AudioItem, spider: CCAudioSpider) -> AudioItem:
         try:
+            id = uuid.uuid4().hex
             with tempfile.TemporaryDirectory() as tmp_dir:
                 parsed_url = urlparse(item["audio_url"])
                 filename = os.path.basename(parsed_url.path)
                 if not filename:
-                    filename = f"{item['item_id']}.audio"
+                    filename = f"{id}.audio"
 
                 tmp_path = Path(tmp_dir) / filename
 
@@ -71,13 +77,12 @@ class AudioProcessingPipeline:
                     audio.export(tmp_path, format="wav")
 
                 recording = Recording.from_file(
-                    tmp_path, recording_id=f"recording_{item['item_id']}"
+                    tmp_path, recording_id=f"recording_{id}"
                 ).move_to_memory()
-
                 assert recording.channel_ids is not None
 
                 supervision = SupervisionSegment(
-                    id=f"segment_{item['item_id']}",
+                    id=f"segment_{id}",
                     recording_id=recording.id,
                     start=0,
                     duration=recording.duration,
@@ -87,7 +92,7 @@ class AudioProcessingPipeline:
 
                 if len(recording.channel_ids) == 1:
                     cut = MonoCut(
-                        id=item["item_id"],
+                        id=id,
                         start=0,
                         duration=recording.duration,
                         channel=0,
@@ -102,7 +107,7 @@ class AudioProcessingPipeline:
                     )
                 else:
                     cut = MultiCut(
-                        id=item["item_id"],
+                        id=id,
                         start=0,
                         duration=recording.duration,
                         channel=recording.channel_ids,
@@ -116,15 +121,15 @@ class AudioProcessingPipeline:
                         },
                     )
 
-                if self.writer:
-                    self.writer.write(cut)
+                assert self.writer is not None
+
+                self.writer.write(cut)
 
                 del item["audio_data"]
-                item["status"] = "processed"
                 return item
 
         except Exception as e:
             spider.logger.warning(
-                f"Error processing item {item.get('item_id', 'unknown')}: {e}"
+                f"Error processing item {item.get('audio_url', '')}: {e}"
             )
             raise DropItem(f"Failed to process audio: {e}")

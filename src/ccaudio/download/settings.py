@@ -1,14 +1,14 @@
 BOT_NAME = "ccaudio"
 
-SPIDER_MODULES = ["ccaudio.download"]
-NEWSPIDER_MODULE = "ccaudio.download"
+SPIDER_MODULES = ["ccaudio.download.spiders"]
+NEWSPIDER_MODULE = "ccaudio.download.spiders"
 
 ROBOTSTXT_OBEY = False
 
 CONCURRENT_REQUESTS = 16
 CONCURRENT_REQUESTS_PER_DOMAIN = 16
 
-DOWNLOAD_DELAY = 0
+DOWNLOAD_DELAY = 1
 
 DOWNLOAD_TIMEOUT = 300
 
@@ -26,7 +26,7 @@ RETRY_TIMES = 3
 RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 
 ITEM_PIPELINES = {
-    "ccaudio.download.scrapy_pipelines.AudioProcessingPipeline": 300,
+    "ccaudio.pipelines.CCAudioPipeline": 300,
 }
 
 LOG_LEVEL = "INFO"
@@ -40,4 +40,4 @@ TELNETCONSOLE_ENABLED = False
 HTTPCACHE_ENABLED = False
 
 OUTPUT_DIR = "./output"
-SHARD_SIZE = 100
+SHARD_SIZE = 5000

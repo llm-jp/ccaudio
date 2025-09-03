@@ -3,14 +3,13 @@ import io
 import numpy as np
 import soundfile as sf
 from faster_whisper import WhisperModel
-from lhotse import MonoCut, Recording
-from lhotse.cut.mono import SupervisionSegment
+from lhotse import MonoCut, Recording, SupervisionSegment
 
-from ccaudio.preprocess.pipeline.whisper_detect_lang import whisper_detect_lang
+from ccaudio.preprocess.whisper_transcribe import whisper_transcribe
 
 
-def test_whisper_detect_lang() -> None:
-    wav = np.random.randn(16000)
+def test_whisper_transcribe() -> None:
+    wav = np.random.randn(16000 * 30)
     sr = 16000
 
     buf = io.BytesIO()
@@ -38,5 +37,5 @@ def test_whisper_detect_lang() -> None:
 
     model = WhisperModel(model_size_or_path="large-v3")
 
-    cut = whisper_detect_lang(cut, model)
+    cut = whisper_transcribe(cut, model)
     assert isinstance(cut, MonoCut)

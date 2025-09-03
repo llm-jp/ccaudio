@@ -5,9 +5,11 @@
 ## Download
 
 ```sh
-uv run src/ccaudio/download/main.py --output_dir $OUTPUT_DIR
+uv run src/ccaudio/download/main.py --download_dir $DOWNLOAD_DIR
 ```
 
 ## Preprocess
 
-- [NeMo Speech Data Processor](https://github.com/NVIDIA/NeMo-speech-data-processor)
+```sh
+uv run src/ccaudio/preprocess/preprocess.py --download_dir $DOWNLOAD_DIR --output_dir $OUTPUT_DIR
+```

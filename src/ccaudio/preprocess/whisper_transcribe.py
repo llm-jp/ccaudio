@@ -23,7 +23,7 @@ def whisper_transcribe(cut: MonoCut, model: WhisperModel) -> MonoCut:
         alignment_items.append(
             AlignmentItem(
                 symbol=str(seg["text"]),  # type: ignore
-                start=float(seg["start"]),  # type: ignore
+                start=cut.start + float(seg["start"]),  # type: ignore
                 duration=float(seg["end"]) - float(seg["start"]),  # type: ignore
             )
         )
