@@ -22,10 +22,16 @@ logger = logging.getLogger(__name__)
 class LhotseSharPipeline:
     """Pipeline to save audio data in Lhotse shar format"""
 
-    def __init__(self, output_dir: str = "output", shard_size: int = 5000):
+    def __init__(
+        self,
+        output_dir: str = "output",
+        shard_size: int = 5000,
+        preprocess: bool = False,
+    ):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.shard_size = shard_size
+        self.preprocess = preprocess
         self.writer = None
         self.cuts = []
         self.item_count = 0
@@ -36,7 +42,8 @@ class LhotseSharPipeline:
         """Create pipeline from crawler settings"""
         output_dir = crawler.settings.get("SHAR_OUTPUT_DIR", "output")
         shard_size = crawler.settings.getint("SHAR_SHARD_SIZE", 5000)
-        return cls(output_dir=output_dir, shard_size=shard_size)
+        preprocess = crawler.settings.getint("PREPROCESS", False)
+        return cls(output_dir=output_dir, shard_size=shard_size, preprocess=preprocess)
 
     def open_spider(self, spider):
         """Initialize shar writer when spider opens"""
@@ -187,14 +194,14 @@ class LhotseSharPipeline:
                         "language": adapter.get("language", ""),
                     },
                 )
-
-            cutset = self.preprocess_cut(cut)
-
-            # Write to shar
             assert self.writer is not None
 
-            for c in cutset.data:
-                self.writer.write(c)
+            if self.preprocess:
+                cutset = self.preprocess_cut(cut)
+                for c in cutset.data:
+                    self.writer.write(c)
+            else:
+                self.writer.write(cut)
 
             self.item_count += 1
 

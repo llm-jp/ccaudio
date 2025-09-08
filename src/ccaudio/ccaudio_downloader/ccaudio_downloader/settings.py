@@ -15,8 +15,9 @@ NEWSPIDER_MODULE = "ccaudio_downloader.spiders"
 ADDONS = {}
 
 # Lhotse shar settings
-SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_preprocessed"
-SHAR_SHARD_SIZE = 50000
+SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw"
+SHAR_SHARD_SIZE = 10000
+PREPROCESS = False
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
