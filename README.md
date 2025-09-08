@@ -5,8 +5,11 @@
 ## Download
 
 ```sh
-uv run src/ccaudio/download/main.py --download_dir $DOWNLOAD_DIR
+cd src/ccaudio/ccaudio_downloader
+uv run scrapy crawl ccaudio_spider
 ```
+
+Please change `SHAR_OUTPUT_DIR` in `src/ccaudio/ccaudio_downloader/ccaudio_downloader/settings.py`
 
 ## Preprocess
 

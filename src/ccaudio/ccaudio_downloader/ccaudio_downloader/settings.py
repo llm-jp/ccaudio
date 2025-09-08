@@ -14,6 +14,10 @@ NEWSPIDER_MODULE = "ccaudio_downloader.spiders"
 
 ADDONS = {}
 
+# Lhotse shar settings
+SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw"
+SHAR_SHARD_SIZE = 1000
+
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = "ccaudio_downloader (+http://www.yourdomain.com)"
@@ -86,9 +90,6 @@ AUTOTHROTTLE_DEBUG = False
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
 
-# Lhotse shar settings
-SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw"
-SHAR_SHARD_SIZE = 10
 
 # Increase download timeout for large audio files
 DOWNLOAD_TIMEOUT = 180
