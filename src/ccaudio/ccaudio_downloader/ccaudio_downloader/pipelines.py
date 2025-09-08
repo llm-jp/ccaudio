@@ -34,7 +34,7 @@ class LhotseSharPipeline:
 
     def open_spider(self, spider):
         """Initialize shar writer when spider opens"""
-        shar_path = self.output_dir / "audio"
+        shar_path = self.output_dir
         logger.info(f"Opening SharWriter at {shar_path}")
         self.writer = SharWriter(
             output_dir=str(shar_path),
@@ -42,6 +42,7 @@ class LhotseSharPipeline:
             shard_size=self.shard_size,
             warn_unused_fields=False,
         )
+        self.writer.__enter__()
 
     def close_spider(self, spider):
         """Close shar writer when spider closes"""
@@ -147,6 +148,8 @@ class LhotseSharPipeline:
             recording_id = f"audio_{self.item_count:08d}"
             recording.id = recording_id
 
+            assert recording.channel_ids is not None
+
             # Create Cut object based on number of channels
             if recording.num_channels == 1:
                 cut = MonoCut(
@@ -168,7 +171,7 @@ class LhotseSharPipeline:
                     id=recording_id,
                     start=0,
                     duration=recording.duration,
-                    channel=[list(range(recording.num_channels))],
+                    channel=recording.channel_ids,
                     recording=recording,
                     custom={
                         "audio_url": adapter.get("audio_url", ""),

@@ -73,7 +73,7 @@ ITEM_PIPELINES = {
 # each remote server
 # AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 # Enable showing throttling stats for every response received:
-# AUTOTHROTTLE_DEBUG = False
+AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
@@ -87,8 +87,8 @@ ITEM_PIPELINES = {
 FEED_EXPORT_ENCODING = "utf-8"
 
 # Lhotse shar settings
-SHAR_OUTPUT_DIR = "output"
-SHAR_SHARD_SIZE = 5000
+SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw"
+SHAR_SHARD_SIZE = 10
 
 # Increase download timeout for large audio files
 DOWNLOAD_TIMEOUT = 180

@@ -15,3 +15,10 @@ class AudioItem(scrapy.Item):
     language = scrapy.Field()       # Language code
     audio_data = scrapy.Field()     # Raw audio bytes
     content_type = scrapy.Field()   # HTTP content-type header
+    
+    def __repr__(self):
+        """Custom representation that excludes audio_data from logs"""
+        data = dict(self)
+        if 'audio_data' in data:
+            data['audio_data'] = f'<{len(data["audio_data"])} bytes>' if data['audio_data'] else None
+        return f'<AudioItem {data}>'
