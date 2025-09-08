@@ -222,7 +222,7 @@ class LhotseSharPipeline:
         resampled_cut = mono_cut.resample(16000)
         assert isinstance(resampled_cut, MonoCut)
 
-        cutset = resampled_cut.cut_into_windows(duration=60)
+        cutset = resampled_cut.cut_into_windows(duration=30)
         assert isinstance(cutset, CutSet)
 
         cutset = (
