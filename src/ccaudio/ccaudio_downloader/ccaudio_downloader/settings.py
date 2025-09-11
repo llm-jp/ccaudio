@@ -16,7 +16,7 @@ ADDONS = {}
 
 # Lhotse shar settings
 SHAR_OUTPUT_DIR = "/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw"
-SHAR_SHARD_SIZE = 10000
+SHAR_SHARD_SIZE = 100
 PREPROCESS = False
 
 
