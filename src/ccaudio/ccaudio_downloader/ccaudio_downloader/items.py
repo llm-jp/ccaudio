@@ -8,17 +8,20 @@ import scrapy
 
 class AudioItem(scrapy.Item):
     """Item for storing downloaded audio data and metadata"""
-    audio_url = scrapy.Field()      # URL of the audio file
-    title = scrapy.Field()          # Title of the audio
-    description = scrapy.Field()    # Description text
-    page_url = scrapy.Field()       # Source page URL
-    language = scrapy.Field()       # Language code
-    audio_data = scrapy.Field()     # Raw audio bytes
-    content_type = scrapy.Field()   # HTTP content-type header
-    
+
+    audio_url = scrapy.Field()  # URL of the audio file
+    title = scrapy.Field()  # Title of the audio
+    description = scrapy.Field()  # Description text
+    page_url = scrapy.Field()  # Source page URL
+    language = scrapy.Field()  # Language code
+    audio_data = scrapy.Field()  # Raw audio bytes
+    content_type = scrapy.Field()  # HTTP content-type header
+
     def __repr__(self):
         """Custom representation that excludes audio_data from logs"""
         data = dict(self)
-        if 'audio_data' in data:
-            data['audio_data'] = f'<{len(data["audio_data"])} bytes>' if data['audio_data'] else None
-        return f'<AudioItem {data}>'
+        if "audio_data" in data:
+            data["audio_data"] = (
+                f"<{len(data['audio_data'])} bytes>" if data["audio_data"] else None
+            )
+        return f"<AudioItem {data}>"
