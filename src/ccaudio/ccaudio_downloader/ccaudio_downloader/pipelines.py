@@ -2,18 +2,14 @@ import io
 import logging
 import os
 import tempfile
-from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
-import numpy as np
 import soundfile as sf
 from faster_whisper import WhisperModel
 from itemadapter import ItemAdapter
-from lhotse import CutSet, MonoCut, MultiCut, Recording, SupervisionSegment
-from lhotse.cut.data import DataCut
+from lhotse import MonoCut, MultiCut, Recording
 from lhotse.shar import SharWriter
-from lhotse.supervision import AlignmentItem
 from pydub import AudioSegment
 
 logger = logging.getLogger(__name__)
@@ -42,8 +38,7 @@ class LhotseSharPipeline:
         """Create pipeline from crawler settings"""
         output_dir = crawler.settings.get("SHAR_OUTPUT_DIR", "output")
         shard_size = crawler.settings.getint("SHAR_SHARD_SIZE", 5000)
-        preprocess = crawler.settings.getint("PREPROCESS", False)
-        return cls(output_dir=output_dir, shard_size=shard_size, preprocess=preprocess)
+        return cls(output_dir=output_dir, shard_size=shard_size)
 
     def open_spider(self, spider):
         """Initialize shar writer when spider opens"""
@@ -195,13 +190,7 @@ class LhotseSharPipeline:
                     },
                 )
             assert self.writer is not None
-
-            if self.preprocess:
-                cutset = self.preprocess_cut(cut)
-                for c in cutset.data:
-                    self.writer.write(c)
-            else:
-                self.writer.write(cut)
+            self.writer.write(cut)
 
             self.item_count += 1
 
@@ -218,103 +207,3 @@ class LhotseSharPipeline:
                 os.unlink(tmp_path)
 
         return item
-
-    def preprocess_cut(self, cut: MonoCut | MultiCut) -> CutSet:
-        if isinstance(cut, MultiCut):
-            mono_cut = cut.to_mono(mono_downmix=True)
-            assert isinstance(mono_cut, DataCut)
-        else:
-            mono_cut = cut
-
-        resampled_cut = mono_cut.resample(16000)
-        assert isinstance(resampled_cut, MonoCut)
-
-        cutset = resampled_cut.cut_into_windows(duration=30)
-        assert isinstance(cutset, CutSet)
-
-        cutset = (
-            cutset.map(self.whisper_detect_lang)
-            .filter(self.filter_lang_prob)
-            .map(self.whisper_transcribe)
-            .trim_to_alignments(
-                type="word",
-                keep_all_channels=True,
-                num_jobs=4,
-            )
-        )
-
-        return cutset
-
-    def whisper_detect_lang(self, cut: MonoCut) -> MonoCut:
-        audio = cut.load_audio()
-        assert isinstance(audio, np.ndarray)
-
-        features = self.model.feature_extractor(audio, chunk_length=30)
-
-        lang, lang_prob, _ = self.model.detect_language(
-            features=features,
-            vad_filter=True,
-            language_detection_segments=7,
-            language_detection_threshold=0.5,
-        )
-
-        cut.supervisions = [
-            SupervisionSegment(
-                id=f"segment_{cut.id}",
-                recording_id=cut.recording_id,
-                start=cut.start,
-                duration=cut.duration,
-                channel=0,
-                language=lang,
-            )
-        ]
-
-        if cut.custom is not None:
-            cut.custom["lang_prob"] = lang_prob
-        else:
-            cut.custom = {"lang_prob": lang_prob}
-
-        return cut
-
-    def filter_lang_prob(self, cut: MonoCut) -> bool:
-        assert cut.custom is not None
-        return cut.custom["lang_prob"] >= 0.7
-
-    def whisper_transcribe(self, cut: MonoCut) -> MonoCut:
-        audio = cut.load_audio()
-        assert isinstance(audio, np.ndarray)
-
-        segments, _ = self.model.transcribe(
-            audio=audio[0], language=cut.supervisions[0].language
-        )
-
-        pred_text = ""
-        alignment_items = []
-        for segment in segments:
-            seg = serialize(segment)
-
-            pred_text += str(seg["text"]).strip()  # type: ignore
-            alignment_items.append(
-                AlignmentItem(
-                    symbol=str(seg["text"]),  # type: ignore
-                    start=cut.start + float(seg["start"]),  # type: ignore
-                    duration=float(seg["end"]) - float(seg["start"]),  # type: ignore
-                )
-            )
-
-        s = cut.supervisions[0]
-        s.text = pred_text
-        s.alignment = {"word": alignment_items}
-        cut.supervisions = [s]
-
-        return cut
-
-
-def serialize(obj):
-    if is_dataclass(obj) and not isinstance(obj, type):
-        return asdict(obj)
-    elif isinstance(obj, list):
-        return [serialize(item) for item in obj]
-    elif isinstance(obj, dict):
-        return {k: serialize(v) for k, v in obj.items()}
-    return obj
