@@ -2,14 +2,11 @@
 
 - [Hugging Face](https://huggingface.co/datasets/llm-jp/cc-audio-2025-18-rss)
 
-## Download
+## Usage
 
 ```sh
-uv run src/ccaudio/download/main.py --download_dir $DOWNLOAD_DIR
+cd src/ccaudio/ccaudio_downloader
+uv run scrapy crawl ccaudio_spider
 ```
 
-## Preprocess
-
-```sh
-uv run src/ccaudio/preprocess/preprocess.py --download_dir $DOWNLOAD_DIR --output_dir $OUTPUT_DIR
-```
+Please change `SHAR_OUTPUT_DIR` and `SHAR_SHARD_SIZE` in `src/ccaudio/ccaudio_downloader/ccaudio_downloader/settings.py`
