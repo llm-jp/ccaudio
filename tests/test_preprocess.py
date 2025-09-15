@@ -1,12 +1,12 @@
 from pathlib import Path
 
-import torch
-import torchaudio
 from demucs.api import Separator
-from lhotse import CutSet
+from lhotse import CutSet, MonoCut, MultiCut
+
+from ccaudio.preprocess import convert_audio, separate
 
 
-def test_demucs() -> None:
+def test_preprocess() -> None:
     separator = Separator()
 
     shar_dir = Path("/groups/gcg51557/experiments/0167_cc_audio/asai/ccaudio_raw/")
@@ -17,12 +17,8 @@ def test_demucs() -> None:
     cuts = CutSet.from_shar({"cuts": cut_paths, "recording": recording_paths})
 
     for cut in cuts.data:
-        audio = torch.from_numpy(cut.load_audio())
-        origin, separated = separator.separate_tensor(audio)
-
-        torchaudio.save("origin.wav", origin, cut.sampling_rate)
-
-        for k, v in separated.items():
-            torchaudio.save(f"{k}.wav", v, cut.sampling_rate)
+        assert isinstance(cut, MonoCut) or isinstance(cut, MultiCut)
+        c = convert_audio(cut, separator.samplerate)
+        c = separate(c, separator)
 
         break
