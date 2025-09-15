@@ -6,10 +6,12 @@ readme = "README.md"
 authors = [
     { name = "Kohei ASAI", email = "ko2001he@gmail.com" }
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
     "datasets>=4.0.0",
+    "demucs",
     "lhotse>=1.30.3",
+    "numpy<2.0",
     "pydub>=0.25.1",
     "scrapy>=2.13.3",
 ]
@@ -48,3 +50,13 @@ venv = ".venv"
 
 [tool.pytest.ini_options]
 addopts = "-vv --tb=short -s"
+
+[tool.uv.sources]
+torch = { index = "torch-aarch", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'"}
+torchaudio = { index = "torch-aarch", marker = "sys_platform == 'linux' and platform_machine == 'aarch64'"}
+demucs = { git = "https://github.com/adefossez/demucs" }
+
+[[tool.uv.index]]
+name = "torch-aarch"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
