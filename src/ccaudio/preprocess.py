@@ -1,5 +1,5 @@
 import argparse
-import io
+import shutil
 from pathlib import Path
 from typing import Union
 
@@ -23,18 +23,21 @@ def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> MonoCut:
     return resampled_cut
 
 
-def separate(cut: MonoCut, separator: Separator) -> MonoCut:
+def separate(cut: MonoCut, separator: Separator, audio_dir: Path) -> MonoCut:
     audio = torch.from_numpy(cut.load_audio())
     if audio.shape[0] == 1:
         audio = audio.repeat(2, 1)
     _, separated = separator.separate_tensor(audio)
 
-    buf = io.BytesIO()
+    output_path = audio_dir / f"{cut.id}.flac"
     sf.write(
-        buf, separated["vocals"][0].unsqueeze(0).T, separator.samplerate, format="WAV"
+        output_path,
+        separated["vocals"][0].unsqueeze(0).T,
+        separator.samplerate,
+        format="FLAC",
     )
 
-    recording = Recording.from_bytes(buf.getvalue(), recording_id=cut.recording_id)
+    recording = Recording.from_file(output_path, recording_id=cut.recording_id)
     cut.recording = recording
 
     return cut
@@ -48,20 +51,27 @@ def main(shar_dir: Path, output_dir: Path) -> None:
 
     separator = Separator()
 
-    cuts = cuts.map(lambda cut: convert_audio(cut, separator.samplerate)).map(
-        lambda cut: separate(cut, separator)
-    )
+    audio_dir = output_dir / "tmp"
+    audio_dir.mkdir(parents=True, exist_ok=True)
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        cuts = cuts.map(lambda cut: convert_audio(cut, separator.samplerate)).map(
+            lambda cut: separate(cut, separator, audio_dir)
+        )
 
-    cuts.to_shar(
-        output_dir,
-        fields={"recording": "flac"},
-        shard_size=100,
-        num_jobs=4,
-        fault_tolerant=True,
-        verbose=True,
-    )
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        cuts.to_shar(
+            output_dir,
+            fields={"recording": "flac"},
+            shard_size=100,
+            num_jobs=4,
+            fault_tolerant=True,
+            verbose=True,
+        )
+
+    finally:
+        shutil.rmtree(audio_dir)
 
 
 if __name__ == "__main__":

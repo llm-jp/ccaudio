@@ -19,6 +19,6 @@ def test_preprocess() -> None:
     for cut in cuts.data:
         assert isinstance(cut, MonoCut) or isinstance(cut, MultiCut)
         c = convert_audio(cut, separator.samplerate)
-        c = separate(c, separator)
+        c = separate(c, separator, Path("."))
 
         break
