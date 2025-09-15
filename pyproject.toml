@@ -9,7 +9,6 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "datasets>=4.0.0",
-    "faster-whisper>=1.2.0",
     "lhotse>=1.30.3",
     "pydub>=0.25.1",
     "scrapy>=2.13.3",

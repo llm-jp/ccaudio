@@ -6,7 +6,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import soundfile as sf
-from faster_whisper import WhisperModel
 from itemadapter import ItemAdapter
 from lhotse import MonoCut, MultiCut, Recording
 from lhotse.shar import SharWriter
@@ -22,16 +21,13 @@ class LhotseSharPipeline:
         self,
         output_dir: str = "output",
         shard_size: int = 5000,
-        preprocess: bool = False,
     ):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.shard_size = shard_size
-        self.preprocess = preprocess
         self.writer = None
         self.cuts = []
         self.item_count = 0
-        self.model = WhisperModel(model_size_or_path="large-v3")
 
     @classmethod
     def from_crawler(cls, crawler):
