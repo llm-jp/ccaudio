@@ -65,7 +65,7 @@ def main(shar_dir: Path, output_dir: Path) -> None:
             output_dir,
             fields={"recording": "flac"},
             shard_size=100,
-            num_jobs=4,
+            num_jobs=1,
             fault_tolerant=True,
             verbose=True,
         )
