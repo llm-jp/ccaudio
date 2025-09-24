@@ -66,3 +66,10 @@ uv run src/ccaudio/preprocess.py \
 - `--shar_dir`: ダウンロードしたsharが保存されているディレクトリ
 - `--output_dir`: 前処理後の音声をshar形式で保存するディレクトリ
 
+### 3. ダウンロードしたデータの使い方
+
+`src/ccaudio/load_shar_sample.py` を参照してください。
+
+```sh
+uv run src/ccaudio/load_shar_sample.py --shar_dir /path/to/shar/dir/
+```
