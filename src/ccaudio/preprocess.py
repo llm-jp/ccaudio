@@ -1,5 +1,5 @@
 import argparse
-import shutil
+import io
 from pathlib import Path
 from typing import Union
 
@@ -8,6 +8,8 @@ import torch
 from demucs.api import Separator
 from lhotse import CutSet, MonoCut, MultiCut, Recording
 from lhotse.cut.data import DataCut
+from lhotse.shar import SharWriter
+from tqdm import tqdm
 
 
 def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> MonoCut:
@@ -23,21 +25,21 @@ def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> MonoCut:
     return resampled_cut
 
 
-def separate(cut: MonoCut, separator: Separator, audio_dir: Path) -> MonoCut:
+def separate(cut: MonoCut, separator: Separator) -> MonoCut:
     audio = torch.from_numpy(cut.load_audio())
     if audio.shape[0] == 1:
         audio = audio.repeat(2, 1)
     _, separated = separator.separate_tensor(audio)
 
-    output_path = audio_dir / f"{cut.id}.flac"
+    buf = io.BytesIO()
     sf.write(
-        output_path,
+        buf,
         separated["vocals"][0].unsqueeze(0).T,
         separator.samplerate,
         format="FLAC",
     )
 
-    recording = Recording.from_file(output_path, recording_id=cut.recording_id)
+    recording = Recording.from_bytes(buf.getvalue(), recording_id=cut.recording_id)
     cut.recording = recording
 
     return cut
@@ -51,27 +53,17 @@ def main(shar_dir: Path, output_dir: Path) -> None:
 
     separator = Separator()
 
-    audio_dir = output_dir / "tmp"
-    audio_dir.mkdir(parents=True, exist_ok=True)
+    cuts = cuts.map(lambda cut: convert_audio(cut, separator.samplerate)).map(
+        lambda cut: separate(cut, separator)
+    )
 
-    try:
-        cuts = cuts.map(lambda cut: convert_audio(cut, separator.samplerate)).map(
-            lambda cut: separate(cut, separator, audio_dir)
-        )
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        cuts.to_shar(
-            output_dir,
-            fields={"recording": "flac"},
-            shard_size=100,
-            num_jobs=1,
-            fault_tolerant=True,
-            verbose=True,
-        )
-
-    finally:
-        shutil.rmtree(audio_dir)
+    with SharWriter(
+        str(output_dir), fields={"recording": "flac"}, shard_size=100
+    ) as writer:
+        for cut in tqdm(cuts.data):
+            writer.write(cut)
 
 
 if __name__ == "__main__":
