@@ -33,7 +33,7 @@ uv run scrapy crawl ccaudio_spider -s SHAR_OUTPUT_DIR=/path/to/shar/dir/
 **パラメータ：**
 - `SHAR_OUTPUT_DIR`: ダウンロードした音声をshar形式で保存するディレクトリのパス
 
-なお、本コードでは `language` カラムが `ja`, `ja_JP`, `ja-jp`, `ja-JP` のもののみをダウンロードするようにしていますが、このフィルタリングを変えたい場合は `src/ccaudio/ccaudio_downloader/ccaudio_downloader/spiders/ccaudio_spider.py` の `CcaudioSpiderSpider.start` メソッドを編集してください。
+なお、本コードでは `language` カラムが `ja`, `ja_JP`, `ja-jp`, `ja-JP` のもののみをダウンロードするようにしていますが、このフィルタリングを変えたい場合は [ccaudio_spider.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/spiders/ccaudio_spider.py) の `CcaudioSpiderSpider.start` メソッドを編集してください。
 
 ```python
 async def start(self):
@@ -68,7 +68,7 @@ uv run src/ccaudio/preprocess.py \
 
 ### 3. ダウンロードしたデータの使い方
 
-`src/ccaudio/load_shar_sample.py` を参照してください。
+[load_shar_sample.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/load_shar_sample.py) を参照してください。
 
 ```sh
 uv run src/ccaudio/load_shar_sample.py --shar_dir /path/to/shar/dir/
