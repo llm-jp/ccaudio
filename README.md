@@ -33,19 +33,14 @@ uv run scrapy crawl ccaudio_spider -s SHAR_OUTPUT_DIR=/path/to/shar/dir/
 **Parameters:**
 - `SHAR_OUTPUT_DIR`: Directory path to save downloaded audio in shar format
 
-Note: This code is configured to download only items where the `language` column is `ja`, `ja_JP`, `ja-jp`, or `ja-JP`. To change this filtering, edit the `CcaudioSpiderSpider.start` method in [ccaudio_spider.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/spiders/ccaudio_spider.py):
+Note: This code is configured to download only items where the `language` column is `ja`, `ja_JP`, `ja-jp`, or `ja-JP`. To change this filtering, edit the `LANGUAGE_ITEMS` setting in [settings.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/settings.py):
 
 ```python
-async def start(self):
-    """Load HuggingFace dataset and yield requests for each audio URL"""
-    logger.info("Loading cc-audio-2025-18-rss dataset from HuggingFace...")
+# Dataset settings
+DATASET_NAME = "llm-jp/cc-audio-2025-18-rss"
 
-    # Load the dataset
-    self.dataset = load_dataset("llm-jp/cc-audio-2025-18-rss", split="train")
-
-    # Filter for Japanese content
-    ja_items = ["ja", "ja_JP", "ja-jp", "ja-JP"]
-    self.dataset = self.dataset.filter(lambda x: x["language"] in ja_items)
+# Set LANGUAGE_ITEMS=[] if you don't want to filter by language
+LANGUAGE_ITEMS = ["ja", "ja_JP", "ja-jp", "ja-JP"]
 ```
 
 ### 2. Data Preprocessing
