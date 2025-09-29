@@ -1,39 +1,39 @@
 # Common Crawl Audio
 
-Common Crawl Audioデータセットのダウンロードと前処理を行うツールです。
+Tools for downloading and preprocessing the Common Crawl Audio dataset.
 
-## 概要
+## Overview
 
-このツールは、Common Crawlから音声データを収集し、処理するためのPythonパッケージです。収集したデータは[Hugging Face](https://huggingface.co/datasets/llm-jp/cc-audio-2025-18-rss)で公開されています。
+This is a Python package for collecting and processing audio data from Common Crawl. The collected data is published on [Hugging Face](https://huggingface.co/datasets/llm-jp/cc-audio-2025-18-rss).
 
-## 必要な環境
+## Requirements
 
-- [uv](https://github.com/astral-sh/uv) (Pythonパッケージマネージャー)
-- 十分なディスクスペース（日本語のもののみダウンロードする場合は 2 TB ほど）
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
+- Sufficient disk space (approximately 2 TB for Japanese audio only)
 
-## セットアップ
+## Setup
 
 ```sh
 uv sync
 ```
 
-## 使い方
+## Usage
 
-### 1. データのダウンロード
+### 1. Data Download
 
-Hugging Faceのデータセットに保存されている音声URLから、Common Crawlから生の音声データをダウンロードします。
+Download raw audio data from Common Crawl using the audio URLs stored in the Hugging Face dataset.
 
-[lhotse](https://lhotse.readthedocs.io/en/latest/index.html)のshar形式で保存します。
+The data is saved in [lhotse](https://lhotse.readthedocs.io/en/latest/index.html) shar format.
 
 ```sh
 cd src/ccaudio/ccaudio_downloader
 uv run scrapy crawl ccaudio_spider -s SHAR_OUTPUT_DIR=/path/to/shar/dir/
 ```
 
-**パラメータ：**
-- `SHAR_OUTPUT_DIR`: ダウンロードした音声をshar形式で保存するディレクトリのパス
+**Parameters:**
+- `SHAR_OUTPUT_DIR`: Directory path to save downloaded audio in shar format
 
-なお、本コードでは `language` カラムが `ja`, `ja_JP`, `ja-jp`, `ja-JP` のもののみをダウンロードするようにしていますが、このフィルタリングを変えたい場合は [ccaudio_spider.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/spiders/ccaudio_spider.py) の `CcaudioSpiderSpider.start` メソッドを編集してください。
+Note: This code is configured to download only items where the `language` column is `ja`, `ja_JP`, `ja-jp`, or `ja-JP`. To change this filtering, edit the `CcaudioSpiderSpider.start` method in [ccaudio_spider.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/spiders/ccaudio_spider.py):
 
 ```python
 async def start(self):
@@ -48,13 +48,13 @@ async def start(self):
     self.dataset = self.dataset.filter(lambda x: x["language"] in ja_items)
 ```
 
-### 2. データの前処理
+### 2. Data Preprocessing
 
-ダウンロードしたデータを処理し、使いやすい形式に変換します。前処理で行うのは以下の処理です。
+Process the downloaded data and convert it to a more usable format. The preprocessing includes:
 
-- リサンプリング
-- モノラル化
-- [demucs](https://github.com/adefossez/demucs)によるデノイズ
+- Resampling
+- Converting to mono
+- Denoising with [demucs](https://github.com/adefossez/demucs)
 
 ```sh
 uv run src/ccaudio/preprocess.py \
@@ -62,13 +62,13 @@ uv run src/ccaudio/preprocess.py \
   --output_dir /path/to/output/dir
 ```
 
-**パラメータ：**
-- `--shar_dir`: ダウンロードしたsharが保存されているディレクトリ
-- `--output_dir`: 前処理後の音声をshar形式で保存するディレクトリ
+**Parameters:**
+- `--shar_dir`: Directory containing the downloaded shar files
+- `--output_dir`: Directory to save preprocessed audio in shar format
 
-### 3. ダウンロードしたデータの使い方
+### 3. Using the Downloaded Data
 
-[load_shar_sample.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/load_shar_sample.py) を参照してください。
+See [load_shar_sample.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/load_shar_sample.py) for reference.
 
 ```sh
 uv run src/ccaudio/load_shar_sample.py --shar_dir /path/to/shar/dir/
