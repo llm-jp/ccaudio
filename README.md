@@ -73,3 +73,17 @@ See [load_shar_sample.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudi
 ```sh
 uv run src/ccaudio/load_shar_sample.py --shar_dir /path/to/shar/dir/
 ```
+
+## Citation
+
+If you use this dataset or tools in your research, please cite:
+
+```bibtex
+@inproceedings{ccaudio2025,
+  author    = {淺井 航平 and 杉浦 一瑳 and 中田 亘 and 栗田 修平 and 高道 慎之介 and 小川 哲司 and 東中 竜一郎},
+  title     = {Common Crawlを用いた大規模音声音響データセットの構築},
+  booktitle = {日本音響学会2025年秋季研究発表会},
+  month     = {Sep.},
+  year      = {2025}
+}
+```
