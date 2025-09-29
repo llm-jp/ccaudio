@@ -33,7 +33,7 @@ uv run scrapy crawl ccaudio_spider -s SHAR_OUTPUT_DIR=/path/to/shar/dir/
 **Parameters:**
 - `SHAR_OUTPUT_DIR`: Directory path to save downloaded audio in shar format
 
-Note: This code is configured to download only items where the `language` column is `ja`, `ja_JP`, `ja-jp`, or `ja-JP`. To change this filtering, edit the `LANGUAGE_ITEMS` setting in [settings.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/settings.py):
+Note: This code is configured to download only items where the `language` column is `ja`, `ja_JP`, `ja-jp`, or `ja-JP`. The estimated download time with Japanese filtering is approximately 2-3 days. To change this filtering, edit the `LANGUAGE_ITEMS` setting in [settings.py](https://github.com/llm-jp/ccaudio/blob/main/src/ccaudio/ccaudio_downloader/ccaudio_downloader/settings.py):
 
 ```python
 # Dataset settings
