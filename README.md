@@ -18,6 +18,10 @@ Based on Whisper-AT tagging results (estimated from 1/10,000 subset):
 | Male speech, man speaking | 5.8 % |
 | Others | 13.0 % |
 
+## License Notice
+
+This repository is licensed under the Apache License 2.0, but this license applies only to the tools and code in this repository, not to the data downloaded using these tools. The downloaded data remains under the original licenses of their respective sources. Please be sure to check and comply with the licensing terms and conditions of each data source before using the downloaded data.
+
 ## Requirements
 
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
