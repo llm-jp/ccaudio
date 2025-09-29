@@ -33,9 +33,9 @@ uv sync
 
 ### 1. Data Download
 
-Download raw audio data from Common Crawl using the audio URLs stored in the Hugging Face dataset.
+This tool downloads audio files using a pre-collected list of audio URLs that is stored on [HuggingFace](https://huggingface.co/datasets/llm-jp/cc-audio-2025-18-rss). This list was created by crawling RSS feeds and extracting audio URLs from them.
 
-The data is saved in [lhotse](https://lhotse.readthedocs.io/en/latest/index.html) shar format.
+The tool reads this list from HuggingFace and downloads the actual audio files from their original sources. The downloaded audio data is saved in [lhotse](https://lhotse.readthedocs.io/en/latest/index.html) shar format.
 
 ```sh
 cd src/ccaudio/ccaudio_downloader
