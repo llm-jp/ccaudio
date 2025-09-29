@@ -14,6 +14,11 @@ NEWSPIDER_MODULE = "ccaudio_downloader.spiders"
 
 ADDONS = {}
 
+# Dataset settings
+DATASET_NAME = "llm-jp/cc-audio-2025-18-rss"
+# Dataset by HTML
+# DATASET_NAME = "llm-jp/cc-audio-2025-18"
+
 # Lhotse shar settings
 SHAR_OUTPUT_DIR = "ccaudio_raw"
 SHAR_SHARD_SIZE = 100

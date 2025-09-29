@@ -2,6 +2,7 @@ import logging
 
 import scrapy
 from datasets import load_dataset
+from scrapy.utils.project import get_project_settings
 
 from ..items import AudioItem
 
@@ -17,10 +18,13 @@ class CcaudioSpiderSpider(scrapy.Spider):
 
     async def start(self):
         """Load HuggingFace dataset and yield requests for each audio URL"""
-        logger.info("Loading cc-audio-2025-18-rss dataset from HuggingFace...")
+        settings = get_project_settings()
+        dataset_name = settings.get("DATASET_NAME")
+
+        logger.info(f"Loading {dataset_name} dataset from HuggingFace...")
 
         # Load the dataset
-        self.dataset = load_dataset("llm-jp/cc-audio-2025-18-rss", split="train")
+        self.dataset = load_dataset(dataset_name, split="train")
 
         # Filter for Japanese content
         ja_items = ["ja", "ja_JP", "ja-jp", "ja-JP"]
