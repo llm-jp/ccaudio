@@ -12,7 +12,7 @@ from lhotse.shar import SharWriter
 from tqdm import tqdm
 
 
-def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> MonoCut:
+def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> Union[MonoCut, MultiCut]:
     if isinstance(cut, MultiCut):
         mono_cut = cut.to_mono(mono_downmix=True)
         assert isinstance(mono_cut, DataCut)
@@ -25,7 +25,7 @@ def convert_audio(cut: Union[MonoCut, MultiCut], sr: int) -> MonoCut:
     return resampled_cut
 
 
-def separate(cut: MonoCut, separator: Separator) -> MonoCut:
+def separate(cut: Union[MonoCut, MultiCut], separator: Separator) -> MultiCut:
     audio = torch.from_numpy(cut.load_audio())
     if audio.shape[0] == 1:
         audio = audio.repeat(2, 1)
@@ -40,12 +40,21 @@ def separate(cut: MonoCut, separator: Separator) -> MonoCut:
     )
 
     recording = Recording.from_bytes(buf.getvalue(), recording_id=cut.recording_id)
-    cut.recording = recording
+    assert recording.channel_ids is not None
+
+    cut = MultiCut(
+        id=cut.id,
+        start=cut.start,
+        duration=recording.duration,
+        channel=recording.channel_ids,
+        recording=recording,
+        custom=cut.custom,
+    )
 
     return cut
 
 
-def main(shar_dir: Path, output_dir: Path) -> None:
+def main(shar_dir: Path, output_dir: Path, sr: int) -> None:
     cut_paths = sorted(list(map(str, shar_dir.glob("cuts.*.jsonl.gz"))))
     recording_paths = sorted(list(map(str, shar_dir.glob("recording.*.tar"))))
 
@@ -53,8 +62,10 @@ def main(shar_dir: Path, output_dir: Path) -> None:
 
     separator = Separator()
 
-    cuts = cuts.map(lambda cut: convert_audio(cut, separator.samplerate)).map(
-        lambda cut: separate(cut, separator)
+    cuts = (
+        cuts.map(lambda cut: cut.resample(separator.samplerate))
+        .map(lambda cut: separate(cut, separator))
+        .map(lambda cut: cut.resample(sr))
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -70,6 +81,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--shar_dir", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
+    parser.add_argument("--sr", type=int, required=False, default=16000)
     args = parser.parse_args()
 
-    main(Path(args.shar_dir), Path(args.output_dir))
+    main(Path(args.shar_dir), Path(args.output_dir), args.sr)
