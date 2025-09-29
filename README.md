@@ -6,6 +6,18 @@ Tools for downloading and preprocessing the Common Crawl Audio dataset.
 
 This is a Python package for collecting and processing audio data from Common Crawl. The collected data is published on [Hugging Face](https://huggingface.co/datasets/llm-jp/cc-audio-2025-18-rss).
 
+### Dataset Statistics
+
+Based on Whisper-AT tagging results (estimated from 1/10,000 subset):
+
+| Content Type | Ratio |
+|-------------|------------|
+| Speech | 63.9 % |
+| Narration, monologue | 9.5 % |
+| Music | 7.8 % |
+| Male speech, man speaking | 5.8 % |
+| Others | 13.0 % |
+
 ## Requirements
 
 - [uv](https://github.com/astral-sh/uv) (Python package manager)
