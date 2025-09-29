@@ -60,13 +60,13 @@ LANGUAGE_ITEMS = ["ja", "ja_JP", "ja-jp", "ja-JP"]
 Process the downloaded data and convert it to a more usable format. The preprocessing includes:
 
 - Resampling
-- Converting to mono
 - Denoising with [demucs](https://github.com/adefossez/demucs)
 
 ```sh
 uv run src/ccaudio/preprocess.py \
   --shar_dir /path/to/shar/dir \
-  --output_dir /path/to/output/dir
+  --output_dir /path/to/output/dir \
+  --sr 16000
 ```
 
 **Parameters:**
