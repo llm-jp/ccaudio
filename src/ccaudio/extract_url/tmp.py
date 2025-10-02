@@ -1,9 +1,9 @@
 import requests
-from lingua import LanguageDetectorBuilder
 from bs4 import BeautifulSoup
+from cc_audio.url2xml_audio import extract_audio_entries_from_rss
+from lingua import LanguageDetectorBuilder
 
 detector = LanguageDetectorBuilder.from_all_spoken_languages().build()
-from cc_audio.url2xml_audio import extract_audio_entries_from_rss
 
 
 def is_japanese(text: str) -> bool:

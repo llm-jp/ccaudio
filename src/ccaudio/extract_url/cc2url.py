@@ -1,10 +1,11 @@
-from urllib.parse import urljoin
-import requests
 import json
 import os
 import zlib
-from datetime import datetime
 from argparse import ArgumentParser
+from datetime import datetime
+from urllib.parse import urljoin
+
+import requests
 from loguru import logger
 
 

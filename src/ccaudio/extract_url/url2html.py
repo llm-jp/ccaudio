@@ -1,14 +1,14 @@
-import re
 import json
-import chardet
-from warcio.archiveiterator import ArchiveIterator
-from tqdm import tqdm
 import os
+import re
 from argparse import ArgumentParser
-from loguru import logger
 from concurrent.futures import ProcessPoolExecutor
-import requests
 
+import chardet
+import requests
+from loguru import logger
+from tqdm import tqdm
+from warcio.archiveiterator import ArchiveIterator
 
 # lang="ja" 検出
 LANG_JA_REGEX = re.compile(r'<html[^>]*lang=["\']?ja["\']?', re.IGNORECASE)

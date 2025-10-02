@@ -1,13 +1,13 @@
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 import json
-from argparse import ArgumentParser
 import os
-from tqdm import tqdm
+import re
+from argparse import ArgumentParser
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from loguru import logger
+from urllib.parse import urljoin, urlparse
 
-from urllib.parse import urlparse
+from bs4 import BeautifulSoup
+from loguru import logger
+from tqdm import tqdm
 
 AUDIO_EXTENSIONS = (".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac")
 
@@ -20,7 +20,8 @@ def is_valid_url(url):
         if not parsed.scheme and not parsed.netloc and not parsed.path:
             return False
         return True
-    except:
+    except Exception:
+        logger.error(f"Invalid URL: {url}")
         return False
 
 
@@ -39,9 +40,6 @@ def safe_urljoin(base_url, url):
             return url if is_valid_url(url) else None
     except Exception:
         return None
-
-
-import re
 
 
 def looks_like_audio_url(url):

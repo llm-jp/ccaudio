@@ -1,12 +1,13 @@
 import json
-import trafilatura
-from argparse import ArgumentParser
 import os
-from tqdm import tqdm
+from argparse import ArgumentParser
+from concurrent.futures import ProcessPoolExecutor
+
+import trafilatura
 from crawl_mm.utils.edu_classifier import QualityClassifier
 from crawl_mm.utils.ja_classifier import is_japanese
-from concurrent.futures import ProcessPoolExecutor
 from loguru import logger
+from tqdm import tqdm
 
 model = QualityClassifier()
 

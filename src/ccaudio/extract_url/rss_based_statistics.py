@@ -1,9 +1,8 @@
-from datasets import load_dataset
 from collections import Counter
-import pandas as pd
-import matplotlib.pyplot as plt
+
 import matplotlib.cm as cm
-import tldextract
+import matplotlib.pyplot as plt
+from datasets import load_dataset
 
 # font size
 # plt.rcParams["font.size"] = 22

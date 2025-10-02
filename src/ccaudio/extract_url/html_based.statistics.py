@@ -1,8 +1,8 @@
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
 from collections import Counter
+
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import pandas as pd
 import tldextract
 from datasets import load_dataset
 

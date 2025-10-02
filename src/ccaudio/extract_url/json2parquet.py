@@ -1,8 +1,9 @@
-import pandas as pd
 import glob
 import os
-from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor
+
+import pandas as pd
+from tqdm import tqdm
 
 # 入力と出力ディレクトリ
 input_files = sorted(glob.glob("data/cc/audio/2025-18/*.jsonl"))
